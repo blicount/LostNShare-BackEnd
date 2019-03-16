@@ -7,30 +7,28 @@ const Category      = require('../models/Category');
 //get all categorys
 
 router.get('/getAllSubCategoryByCategory/:category', (req,res) => {
-    let subcategoryid;
-    let category = req.params.category;
-
-    Category.findOne({name : category})
+    let categoryname = req.params.category;
+    console.log(categoryname);
+    Category.findOne({name : categoryname})
         .then(category => {
-            if(category){
-                subcategoryid = category.subcategoriesid;
-                console.log(subcategoryid);
+            if(category){  
+                console.log(category.subcategoriesid);
+                SubCategory.findOne({_id : category.subcategoriesid})
+                    .then(subcategory => {
+                        if(subcategory){
+                            res.status(200).json(subcategory);
+                        }else{
+                            console.log(subcategory);
+                            res.status(200).send('no sub catrcories found');
+                        }
+                    });
             }else{
                 res.status(200).send('Category dont have sub categories');
             }
         });
-    console.log(subcategoryid);    
-    SubCategory.findOne({_id : subcategoryid})
-        .then(subcategory => {
-            if(subcategory){
-                res.status(200).json(subcategory);
-            }else{
-                res.status(200).send('no sub catrcories found');
-            }
-        });
+ 
 
 });
-
 
 
 module.exports = router;

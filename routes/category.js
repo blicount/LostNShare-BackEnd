@@ -15,7 +15,5 @@ router.get('/getAllCategories/', (req,res) => {
         });
 });
 
-
-
 module.exports = router;
 

@@ -82,7 +82,7 @@ app.use('/categories',require('./routes/category'));
 app.use('/subcategories',require('./routes/subcategory'));
 
 app.all('*',(req,res) =>{
-    res.send('Got lost? This is a friendly 404 page :) :)');
+    res.send('Got lost? This is a friendly 404 page :)');
 });
 
 

@@ -1,7 +1,28 @@
 const express   = require('express');
 const router    = express.Router();
 const Item      = require('../models/Item'); 
-const events     = require('./events');
+const Event     = require('../models/Event');
+
+
+
+
+// initalize event function
+
+  function initEvent(req,res){
+    let newevent = new Event({
+        events : ['item was created'+Date.now()]
+    }); 
+    newevent.save()
+    .then(event => {
+        if(event){
+            console.log('eventid -------------- '+event._id);
+            return event._id;
+        }else
+            return 'event creation faild';
+    })
+    .catch(err => {return 'got error from event.save()'});
+}
+
 
 
 //get all Lost items
@@ -29,6 +50,30 @@ router.get('/getAllFoundItems/', (req,res) => {
         });
 
 });
+
+//get all  items by fillters
+router.get('/getAllItemsByFillters/', (req,res) => {
+    let category = req.header('category');
+    let subcategory = req.header('subcategory');
+    let location = req.header('location');
+    let startdate = req.header('startdate');
+    let enddate = req.header('enddate');
+    Item.find({itemstate:'active', category : category, subcategory : subcategory,location : location,
+    careationdate: {
+        $gte: startdate,
+        $lte: enddate
+    } })
+        .then(item => {
+            if(item.length > 0){
+                res.status(200).json(item);
+            }else{
+                res.status(200).send('no Items found');
+            }
+        });
+
+});
+
+
 
 //get Item by ID
 router.get('/getItemById/:id', (req,res) => {
@@ -91,10 +136,7 @@ router.get('/getItemByLocation/:location', (req,res) => {
 //create Item
 router.post('/createItem', (req,res) => {
     let answer = {};
-    let event = new events();
-    let eventid = event.initEvent();
     console.log('---------------------');
-    console.log(eventid);
     const {itemtype,title, category, subcategory, picpath,location,desc } = req.body;
     let newitem = new Item({
         itemtype    : itemtype,
@@ -103,12 +145,17 @@ router.post('/createItem', (req,res) => {
         subcategory : subcategory,
         picpath     : picpath,
         location    : location,
-        eventlistid : eventid,
+        eventlistid : null,
         desc        : desc
     });
     console.log(newitem);
     newitem.save()
-        .then(item => {
+        .then(async item => {
+            let eventid = await initEvent();
+            console.log('eventid -------------- '+eventid);
+            Item.updateOne({_id:item._id} ,{$set: { eventlistid : eventid } } )
+                .then(mess => console.log('updated'))
+                .catch(err => console.log(err));
             answer.status = 'success';
             answer.message ='item is created successfuly';
             res.status(200).json(answer);

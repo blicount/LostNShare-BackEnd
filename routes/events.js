@@ -18,7 +18,7 @@ module.exports = class Events{
     }
 
 
-    reateEvent(eventid,eventdesc){
+    createEvent(eventid,eventdesc){
         Event.findOne({_id : eventid})
             .then(event => {
                 if(event){
