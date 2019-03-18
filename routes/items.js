@@ -6,21 +6,25 @@ const Event     = require('../models/Event');
 
 
 
+
 // initalize event function
 
   function initEvent(req,res){
-    let newevent = new Event({
-        events : ['item was created'+Date.now()]
-    }); 
-    newevent.save()
-    .then(event => {
-        if(event){
-            console.log('eventid -------------- '+event._id);
-            return event._id;
-        }else
-            return 'event creation faild';
-    })
-    .catch(err => {return 'got error from event.save()'});
+
+    return new Promise((resolve,reject)=> {
+        let newevent = new Event({
+            events : ['item was created'+Date.now()]
+        }); 
+        newevent.save()
+            .then(event => {
+                if(event){
+                    console.log('eventid -------------- '+event._id);
+                    resolve(event._id);
+                }else
+                    resolve('event creation faild');
+            })
+            .catch(err => {reject(err)});  
+    });
 }
 
 
@@ -131,14 +135,29 @@ router.get('/getItemByLocation/:location', (req,res) => {
 
 });
 
+//get Item by Location
+router.get('/getItemByOwner/:email', (req,res) => {
+    let email = req.params.email;
+    Item.find({owner : email})                     
+        .then(item => {
+            if(item.length > 0 ){
+                res.status(200).json(item);
+            }else{
+                res.status(200).send('no Item found');
+            }
+        });
+
+});
+
 
 
 //create Item
 router.post('/createItem', (req,res) => {
     let answer = {};
     console.log('---------------------');
-    const {itemtype,title, category, subcategory, picpath,location,desc } = req.body;
+    const {email,itemtype,title, category, subcategory, picpath,location,desc } = req.body;
     let newitem = new Item({
+        owner       : email,
         itemtype    : itemtype,
         title       : title,
         category    : category,

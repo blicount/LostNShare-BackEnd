@@ -45,8 +45,11 @@ const ItemSchema = new mongoose.Schema({
     updatedate:{
         type: Date,
         default:Date.now()
+    },
+    owner:{
+        type:String,
+        required:true
     }
-
 
 }); 
 
