@@ -90,7 +90,9 @@ router.post('/login',
 passport.authenticate('local'), 
 (req,res) => {
     let answer = {};
-    res.status(200).send(req);  
+    answer.status = 'succsess';
+    answer.user = req.user;
+    res.status(200).json(answer); 
 });
 /*
 router.post('/login', (req, res, next) => {
