@@ -52,6 +52,9 @@ app.use(function(req, res, next) {
     res.locals.error = req.flash('error');
     next();
   });
+
+// acsess to images folder middleware
+app.use('/uploads' , express.static('uploads'));
   
 
 app.use(function (req, res, next) {

@@ -58,9 +58,10 @@ router.post('/register', (req,res) => {
                 }
                 else{
                     let newuser = new User({
-                        name : name,
-                        email : email,
-                        password : password
+                        name        : name,
+                        email       : email,
+                        password    : password,
+                        phone       : phone
                     });
                     console.log(newuser);
                     bcrypt.genSalt(10, (err, salt) => {

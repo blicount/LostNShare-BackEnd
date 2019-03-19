@@ -2,15 +2,38 @@ const express   = require('express');
 const router    = express.Router();
 const Item      = require('../models/Item'); 
 const Event     = require('../models/Event');
+const multer    = require('multer');
+
+// imeg storege config
+const storge    = multer.diskStorage({
+    destination : (req , file , cb) =>{
+        cb(null , './uploads/');
+    },
+
+    filename : (req , file , cb) =>{
+        cb(null ,file.originalname);
+    }
+})
+
+// imeg filter config
+const filter = (req , file , cb) => {
+    if( file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/pdf'){
+        cb(null , true);
+    }else{
+        cb(new Error('file type error') , false);
+    }
+};
+
+const upload = multer({
+    storage     : storge, 
+    //limiting uploading Image size to 2 mb
+    limits      : {fileSize : 1024*1024*2},
+    fileFilter  : filter
+});
 
 
-
-
-
-// initalize event function
-
+// initalize event data object
   function initEvent(req,res){
-
     return new Promise((resolve,reject)=> {
         let newevent = new Event({
             events : ['item was created'+Date.now()]
@@ -29,8 +52,35 @@ const Event     = require('../models/Event');
 
 
 
+//get all active items
+router.get('/getAllItems', (req,res) => {
+    Item.find({itemstate:'active'})
+        .then(item => {
+            if(item.length > 0){
+                res.status(200).json(item);
+            }else{
+                res.status(200).send('no Items found');
+            }
+        });
+
+});
+
+//get all items
+router.get('/getAllItems', (req,res) => {
+    Item.find({})
+        .then(item => {
+            if(item.length > 0){
+                res.status(200).json(item);
+            }else{
+                res.status(200).send('no Items found');
+            }
+        });
+
+});
+
+
 //get all Lost items
-router.get('/getAllLostItems/', (req,res) => {
+router.get('/getAllLostItems', (req,res) => {
     Item.find({itemstate:'active',itemtype:'lost'})
         .then(item => {
             if(item.length > 0){
@@ -43,7 +93,7 @@ router.get('/getAllLostItems/', (req,res) => {
 });
 
 //get all Found items
-router.get('/getAllFoundItems/', (req,res) => {
+router.get('/getAllFoundItems', (req,res) => {
     Item.find({itemstate:'active',itemtype:'found'})
         .then(item => {
             if(item.length > 0){
@@ -56,19 +106,30 @@ router.get('/getAllFoundItems/', (req,res) => {
 });
 
 //get all  items by fillters
-router.get('/getAllItemsByFillters/', (req,res) => {
-    let category = req.header('category');
-    let subcategory = req.header('subcategory');
-    let location = req.header('location');
+router.get('/getAllItemsByFillters', (req,res) => {
+    let filters = {
+        itemstate   :'active',
+        category    : req.header('category'),
+        subcategory : req.header('subcategory'),
+        location    : req.header('location'),
+        startdate   : req.header('startdate'),
+        enddate     : req.header('enddate')
+   }
     let startdate = req.header('startdate');
     let enddate = req.header('enddate');
-    Item.find({itemstate:'active', category : category, subcategory : subcategory,location : location,
-    careationdate: {
-        $gte: startdate,
-        $lte: enddate
-    } })
+    Item.find()
         .then(item => {
             if(item.length > 0){
+               /* if(startdate){
+                    item.find({careationdate: {$gte: startdate}})
+                        .then(item => {
+                            if(enddate)
+                            item.find({careationdate: {$lte: startdate}})
+                                .then(item => {
+                                
+                                });
+                        });
+                }  */      
                 res.status(200).json(item);
             }else{
                 res.status(200).send('no Items found');
@@ -80,8 +141,8 @@ router.get('/getAllItemsByFillters/', (req,res) => {
 
 
 //get Item by ID
-router.get('/getItemById/:id', (req,res) => {
-    let itemid = req.params.id;
+router.get('/getItemById', (req,res) => {
+    let itemid = req.header('id');
     Item.findOne({id : id})
         .then(item => {
             if(item){
@@ -94,8 +155,8 @@ router.get('/getItemById/:id', (req,res) => {
 });
 
 //get Item by categoty
-router.get('/getItemByCategory/:category', (req,res) => {
-    let category = req.params.category;
+router.get('/getItemByCategory', (req,res) => {
+    let category = req.header('category');
     Item.find({category : category})
         .then(item => {
             if(item.length > 0 ){
@@ -107,9 +168,9 @@ router.get('/getItemByCategory/:category', (req,res) => {
 
 });
 
-//get Item by categoty
-router.get('/getItemBySubCategory/:subcategory', (req,res) => {
-    let subcategory = req.params.subcategory;
+//get Item by subcategoty
+router.get('/getItemBySubCategory', (req,res) => {
+    let subcategory = req.header('subcategory');
     Item.find({subcategory : subcategory})                     
         .then(item => {
             if(item.length > 0 ){
@@ -122,8 +183,8 @@ router.get('/getItemBySubCategory/:subcategory', (req,res) => {
 });
 
 //get Item by Location
-router.get('/getItemByLocation/:location', (req,res) => {
-    let location = req.params.location;
+router.get('/getItemByLocation', (req,res) => {
+    let location = req.header('location');
     Item.find({location : location})                     
         .then(item => {
             if(item.length > 0 ){
@@ -136,8 +197,8 @@ router.get('/getItemByLocation/:location', (req,res) => {
 });
 
 //get Item by Location
-router.get('/getItemByOwner/:email', (req,res) => {
-    let email = req.params.email;
+router.get('/getItemByOwner', (req,res) => {
+    let email = req.header('email');
     Item.find({owner : email})                     
         .then(item => {
             if(item.length > 0 ){
@@ -152,7 +213,8 @@ router.get('/getItemByOwner/:email', (req,res) => {
 
 
 //create Item
-router.post('/createItem', (req,res) => {
+router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
+    console.log(req.file);
     let answer = {};
     console.log('---------------------');
     const {email,itemtype,title, category, subcategory, picpath,location,desc } = req.body;
@@ -162,7 +224,7 @@ router.post('/createItem', (req,res) => {
         title       : title,
         category    : category,
         subcategory : subcategory,
-        picpath     : picpath,
+        picpath     : req.file.path,
         location    : location,
         eventlistid : null,
         desc        : desc
@@ -171,7 +233,6 @@ router.post('/createItem', (req,res) => {
     newitem.save()
         .then(async item => {
             let eventid = await initEvent();
-            console.log('eventid -------------- '+eventid);
             Item.updateOne({_id:item._id} ,{$set: { eventlistid : eventid } } )
                 .then(mess => console.log('updated'))
                 .catch(err => console.log(err));
