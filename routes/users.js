@@ -12,13 +12,25 @@ router.get('/login', (req,res) =>{
     //res.redirect('http://exmple.com/users/login');
 });
 
-//register
+//register page
 router.get('/register', (req,res) => {
     console.log('got to /register');
     res.status(200).json('got to the http://exmple.com/users/register route');
     //res.redirect('http://exmple.com/users/register');
     });
 
+// get user data
+router.get('/userdetails/' , (req,res) => {
+    let email = req.header('email');
+    User.findOne({email : email })
+        .then(user =>{
+            if(user){
+                res.status(200).json(user);
+            }else{
+                res.status(200).send('user details not found');
+            }
+        });        
+});
 //hendel register
 router.post('/register', (req,res) => {
     const {name, email, password, password2 } = req.body;
@@ -109,4 +121,6 @@ router.get('/logout', (req, res) => {
     req.logout();
     res.redirect('http://exmple.com');
   });
+
+
 module.exports = router;

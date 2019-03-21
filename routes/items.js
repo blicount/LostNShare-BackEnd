@@ -54,7 +54,7 @@ const upload = multer({
 
 //get all active items
 router.get('/getAllItems', (req,res) => {
-    Item.find({itemstate:'active'})
+    Item.find({itemstate:'active'}).sort({careationdate: -1 } )
         .then(item => {
             if(item.length > 0){
                 res.status(200).json(item);
@@ -67,7 +67,7 @@ router.get('/getAllItems', (req,res) => {
 
 //get all items
 router.get('/getAllItems', (req,res) => {
-    Item.find({})
+    Item.find({}).sort({careationdate: -1 } )
         .then(item => {
             if(item.length > 0){
                 res.status(200).json(item);
@@ -81,7 +81,7 @@ router.get('/getAllItems', (req,res) => {
 
 //get all Lost items
 router.get('/getAllLostItems', (req,res) => {
-    Item.find({itemstate:'active',itemtype:'lost'})
+    Item.find({itemstate:'active',itemtype:'lost'}).sort({careationdate: -1 } )
         .then(item => {
             if(item.length > 0){
                 res.status(200).json(item);
@@ -94,7 +94,7 @@ router.get('/getAllLostItems', (req,res) => {
 
 //get all Found items
 router.get('/getAllFoundItems', (req,res) => {
-    Item.find({itemstate:'active',itemtype:'found'})
+    Item.find({itemstate:'active',itemtype:'found'}).sort({careationdate: -1 } )
         .then(item => {
             if(item.length > 0){
                 res.status(200).json(item);
@@ -106,30 +106,21 @@ router.get('/getAllFoundItems', (req,res) => {
 });
 
 //get all  items by fillters
-router.get('/getAllItemsByFillters', (req,res) => {
-    let filters = {
-        itemstate   :'active',
-        category    : req.header('category'),
-        subcategory : req.header('subcategory'),
-        location    : req.header('location'),
-        startdate   : req.header('startdate'),
-        enddate     : req.header('enddate')
-   }
+
+
+router.get('/getAllItemsByFillters/', (req,res) => {
+    let category = req.header('category');
+    let subcategory = req.header('subcategory');
+    let location = req.header('location');
     let startdate = req.header('startdate');
     let enddate = req.header('enddate');
-    Item.find()
+    Item.find({itemstate:'active', category : category, subcategory : subcategory,location : location,
+    careationdate: {
+        $gte: startdate,
+        $lte: enddate
+    } })
         .then(item => {
             if(item.length > 0){
-               /* if(startdate){
-                    item.find({careationdate: {$gte: startdate}})
-                        .then(item => {
-                            if(enddate)
-                            item.find({careationdate: {$lte: startdate}})
-                                .then(item => {
-                                
-                                });
-                        });
-                }  */      
                 res.status(200).json(item);
             }else{
                 res.status(200).send('no Items found');
@@ -137,7 +128,6 @@ router.get('/getAllItemsByFillters', (req,res) => {
         });
 
 });
-
 
 
 //get Item by ID
@@ -217,14 +207,14 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
     console.log(req.file);
     let answer = {};
     console.log('---------------------');
-    const {email,itemtype,title, category, subcategory, picpath,location,desc } = req.body;
+    const {email,itemtype,title, category, subcategory,location,desc } = req.body;
     let newitem = new Item({
         owner       : email,
         itemtype    : itemtype,
         title       : title,
         category    : category,
         subcategory : subcategory,
-        picpath     : req.file.path,
+        picpath     : null,
         location    : location,
         eventlistid : null,
         desc        : desc
