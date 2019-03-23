@@ -129,10 +129,12 @@ router.get( '/CheckIfManger' , (req,res) => {
     const email = req.header('email');
     User.findOne({email:email})
         .then(user => {
-            if(user.length > 0){
-                if(user.ismanager)
+            if(user){
+                if(user.ismanager){
                     res.status(200).send('true');
-                res.status(200).send('false');
+                }else{ 
+                    res.status(200).send('false');
+                }
             }else{
                 res.status(200).send('false');
             }
