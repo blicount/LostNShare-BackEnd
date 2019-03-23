@@ -3,9 +3,10 @@ const router    = express.Router();
 const Item      = require('../models/Item'); 
 const Event     = require('../models/Event');
 const multer    = require('multer');
+const moment    = require('moment');
 
 // imeg storege config
-const storge    = multer.diskStorage({
+const storage    = multer.diskStorage({
     destination : (req , file , cb) =>{
         cb(null , './uploads/');
     },
@@ -15,7 +16,7 @@ const storge    = multer.diskStorage({
     }
 })
 
-// imeg filter config
+// validate file type
 const filter = (req , file , cb) => {
     if( file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/pdf'){
         cb(null , true);
@@ -25,7 +26,7 @@ const filter = (req , file , cb) => {
 };
 
 const upload = multer({
-    storage     : storge, 
+    storage     : storage, 
     //limiting uploading Image size to 2 mb
     limits      : {fileSize : 1024*1024*2},
     fileFilter  : filter
@@ -114,19 +115,119 @@ router.get('/getAllItemsByFillters/', (req,res) => {
     let location = req.header('location');
     let startdate = req.header('startdate');
     let enddate = req.header('enddate');
-    Item.find({itemstate:'active', category : category, subcategory : subcategory,location : location,
-    careationdate: {
-        $gte: startdate,
-        $lte: enddate
-    } })
-        .then(item => {
-            if(item.length > 0){
-                res.status(200).json(item);
-            }else{
-                res.status(200).send('no Items found');
-            }
-        });
+    let type = req.header('type');    
+    startdate ? startdate : startdate= new Date('1995-12-17T03:24:00'); ;
+    enddate ? enddate : enddate= Date.now() ;
+    console.log(category);
+    console.log(subcategory);
+    console.log(location);
+    console.log(startdate);
+    console.log(enddate);
+    console.log(type);
 
+    if(category && subcategory && location){    // // got category & subcategory & location 
+        Item.find({itemstate:'active',
+            itemtype : type, 
+            category : category, 
+            subcategory : subcategory,
+            location : location,
+            careationdate: {
+                $gte: startdate,
+                $lte: enddate
+            } 
+        }).sort({careationdate: -1 } )
+            .then(items => {
+                if(items.length > 0){
+                    res.status(200).json(items);
+                }else{
+                    res.status(200).send('no Items found');
+                }
+            });
+    }else if(category){
+        if(subcategory){  // got category & subcategory
+            Item.find({itemstate:'active',
+            itemtype : type, 
+            category : category, 
+            subcategory : subcategory,
+            careationdate: {
+                $gte: startdate,
+                $lte: enddate
+            } 
+        }).sort({careationdate: -1 } )
+            .then(items => {
+                if(items.length > 0){
+                    res.status(200).json(items);
+                }else{
+                    res.status(200).send('no Items found');
+                }
+            });
+        }else if(location){ // got category & location
+            Item.find({itemstate:'active',
+            itemtype : type, 
+            category : category, 
+            location : location,
+            careationdate: {
+                $gte: startdate,
+                $lte: enddate
+            } 
+        }).sort({careationdate: -1 } )
+            .then(items => {
+                if(items.length > 0){
+                    res.status(200).json(items);
+                }else{
+                    res.status(200).send('no Items found');
+                }
+            });
+        }else{   // got only category
+            Item.find({itemstate:'active',
+            itemtype : type, 
+            category : category, 
+            careationdate: {
+                $gte: startdate,
+                $lte: enddate
+            } 
+        }).sort({careationdate: -1 } )
+            .then(items => {
+                if(items.length > 0){
+                    res.status(200).json(items);
+                }else{
+                    res.status(200).send('no Items found');
+                }
+            });
+        }
+
+    }else if(location){
+        Item.find({itemstate:'active',
+            itemtype : type, 
+            location : location, 
+            careationdate: {
+                $gte: startdate,
+                $lte: enddate
+            } 
+        }).sort({careationdate: -1 } )
+            .then(items => {
+                if(items.length > 0){
+                    res.status(200).json(items);
+                }else{
+                    res.status(200).send('no Items found');
+                }
+            });
+    }else{
+        Item.find({itemstate:'active',
+            itemtype : type, 
+            careationdate: {
+                $gte: startdate,
+                $lte: enddate
+            } 
+        }).sort({careationdate: -1 } )
+            .then(items => {
+                if(items.length > 0){
+                    res.status(200).json(items);
+                }else{
+                    res.status(200).send('no Items found');
+                }
+            });
+    }   
 });
 
 
@@ -186,7 +287,7 @@ router.get('/getItemByLocation', (req,res) => {
 
 });
 
-//get Item by Location
+//get Item by owner
 router.get('/getItemByOwner', (req,res) => {
     let email = req.header('email');
     Item.find({owner : email})                     
@@ -214,7 +315,7 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
         title       : title,
         category    : category,
         subcategory : subcategory,
-        picpath     : null,
+        picpath     : req.file.path,
         location    : location,
         eventlistid : null,
         desc        : desc
@@ -224,7 +325,17 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
         .then(async item => {
             let eventid = await initEvent();
             Item.updateOne({_id:item._id} ,{$set: { eventlistid : eventid } } )
-                .then(mess => console.log('updated'))
+                .then(it =>{
+                    if(it.n){ 
+                        if(it.nModified){
+                            answer.message = `Item was careated seccsesfuly`;
+                        }else{
+                            answer.message = `Item was careated without event list`;
+                        }     
+                    }else{
+                        answer.message = `Item was careated without event list`;
+                    }
+                })
                 .catch(err => console.log(err));
             answer.status = 'success';
             answer.message ='item is created successfuly';

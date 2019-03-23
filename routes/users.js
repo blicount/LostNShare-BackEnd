@@ -33,7 +33,7 @@ router.get('/userdetails/' , (req,res) => {
 });
 //hendel register
 router.post('/register', (req,res) => {
-    const {name, email, password, password2 } = req.body;
+    const {name, email, password, password2,phone } = req.body;
     let answer = {};
     let errors = [];
 
@@ -73,7 +73,8 @@ router.post('/register', (req,res) => {
                         name        : name,
                         email       : email,
                         password    : password,
-                        phone       : phone
+                        phone       : phone,
+                        ismanager    : 0
                     });
                     console.log(newuser);
                     bcrypt.genSalt(10, (err, salt) => {
@@ -121,6 +122,47 @@ router.get('/logout', (req, res) => {
     req.logout();
     res.redirect('http://exmple.com');
   });
+
+// check if the user is manger
+
+router.get( '/CheckIfManger' , (req,res) => {
+    const email = req.header('email');
+    User.findOne({email:email})
+        .then(user => {
+            if(user.length > 0){
+                if(user.ismanager)
+                    res.status(200).send('true');
+                res.status(200).send('false');
+            }else{
+                res.status(200).send('false');
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(200).send(`false error`)
+    })
+
+});
+
+
+router.post( '/ConvertToManager' , (req,res) => {
+// maybe i need to check if he is manger first    
+    const email = req.body.email;
+    User.updateOne({email:email},{$set: { ismanager : 1 } })
+        .then(user => {
+            if(user.n){ 
+                if(user.nModified){
+                    res.status(200).send(`${email} was change to manager`);
+                }else{
+                    res.status(200).send(`${email} was not change to manager`);
+                }     
+            }else{
+                res.status(200).send(`${email} was not found`);
+            }
+        })
+        .catch(err=> res.status(200).send(`got error findone() ${err}` ))
+
+});
 
 
 module.exports = router;

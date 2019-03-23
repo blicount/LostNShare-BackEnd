@@ -16,6 +16,9 @@ const UserSchema = new mongoose.Schema({
     phone:{
         type:Number
     },
+    ismanager:{
+        type:Number
+    },
     date:{
         type: Date,
         default:Date.now()

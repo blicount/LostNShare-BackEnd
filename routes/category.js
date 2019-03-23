@@ -57,7 +57,6 @@ router.post('/insertCategory/' , (req,res) =>{
                                 res.status(200).send('category created seccessfully');
                             else
                                 res.status(200).send('create category failed new catgory seve empty');
-                            
                         })
                         .catch(err => res.status(200).send('create category failed save ctegory failed'))
                 }else{
