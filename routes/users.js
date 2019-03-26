@@ -90,7 +90,6 @@ router.post('/register', (req,res) => {
                             .catch(err => res.status(200).json(err));
                         });
                       });    
-
                 }
             });
     }
@@ -146,9 +145,9 @@ router.get( '/CheckIfManger' , (req,res) => {
 
 });
 
-
+//converting regular user to manager user
 router.post( '/ConvertToManager' , (req,res) => {
-// maybe i need to check if he is manger first    
+// maybe needed to check if he is manger first    
     const email = req.body.email;
     User.updateOne({email:email},{$set: { ismanager : 1 } })
         .then(user => {
@@ -162,9 +161,96 @@ router.post( '/ConvertToManager' , (req,res) => {
                 res.status(200).send(`${email} was not found`);
             }
         })
-        .catch(err=> res.status(200).send(`got error findone() ${err}` ))
+        .catch(err=> res.status(200).send(`got error updateone() ${err}` ))
 
 });
 
+//updateing user details
+router.post( '/UpdateUser' , (req, res) => {
+    let email = req.body.email;
+    let name = req.body.name;
+    let phone = req.body.phone;
+
+    if(name){
+        if(phone){
+            User.updateOne({email:email},{$set: { name : name , phone : phone } })
+                .then(user => {
+                    if(user.n){ 
+                        if(user.nModified){
+                            res.status(200).send(`user details change`);
+                        }else{
+                            res.status(200).send(`user details was not change`);
+                        }     
+                    }else{
+                        res.status(200).send(`${email} was not found`);
+                    }
+                })
+                .catch(err=> res.status(200).send(`got error updateone() ${err}` ))
+
+        }else{
+            User.updateOne({email:email},{$set: { name : name } })
+                .then(user => {
+                    if(user.n){ 
+                        if(user.nModified){
+                            res.status(200).send(`user details change`);
+                        }else{
+                            res.status(200).send(`user details was not change`);
+                        }     
+                    }else{
+                        res.status(200).send(`${email} was not found`);
+                    }
+                })
+                .catch(err=> res.status(200).send(`got error updateone() ${err}` ))
+
+        }
+    }else if(phone){
+        User.updateOne({email:email},{$set: { phone : phone } })
+            .then(user => {
+                if(user.n){ 
+                    if(user.nModified){
+                        res.status(200).send(`user details change`);
+                    }else{
+                        res.status(200).send(`user details was not change`);
+                    }     
+                }else{
+                    res.status(200).send(`${email} was not found`);
+                }
+            })
+            .catch(err=> res.status(200).send(`got error updateone() ${err}` ))
+    }
+});
+
+// changing user password 
+router.post( '/ChangePassword', (req,res) => {
+    let email = req.body.email;
+    let password = req.body.password;
+    let password2 = req.body.password2; 
+    let newpassword = req.body.newpassword;
+    
+    if(password !== password2)
+        res.status(200).send('passwords do not match');
+    if(passport.length < 6 )
+        res.status(200).send('password must be at least 6 charecters');
+
+    bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(newpassword, salt, (err, hash) => {
+            if (err) throw err;
+                newpassword = hash;
+                User.updateOne({email:email},{$set: { password : newpassword } })
+                    .then(user => {
+                        if(user.n){ 
+                            if(user.nModified){
+                                res.status(200).send(`user password change`);
+                            }else{
+                                res.status(200).send(`user password was not change`);
+                            }            
+                        }else{
+                            res.status(200).send(`${email} was not found`);
+                        }
+                        })
+                    .catch(err=> res.status(200).send(`got error updateone() ${err}` ))
+        });
+    });    
+});
 
 module.exports = router;

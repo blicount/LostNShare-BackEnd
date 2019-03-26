@@ -4,7 +4,7 @@ const Event      = require('../models/Event');
 
 //get event list
 
-module.exports = class Events{
+class Events{
 
     constructor(){}
     getevent(eventid){
@@ -43,4 +43,6 @@ module.exports = class Events{
         .catch(err => {return 'got error from event.save()'});
     }
 }
+
+module.exports =Events;
 

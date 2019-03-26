@@ -8,7 +8,7 @@ const moment    = require('moment');
 // imeg storege config
 const storage    = multer.diskStorage({
     destination : (req , file , cb) =>{
-        cb(null , './uploads/');
+        cb(null , './uploads');
     },
 
     filename : (req , file , cb) =>{
@@ -305,21 +305,37 @@ router.get('/getItemByOwner', (req,res) => {
 
 //create Item
 router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
-    console.log(req.file);
+    //console.log(req);
     let answer = {};
     console.log('---------------------');
+    console.log(req.file);
+    let newitem;
     const {email,itemtype,title, category, subcategory,location,desc } = req.body;
-    let newitem = new Item({
-        owner       : email,
-        itemtype    : itemtype,
-        title       : title,
-        category    : category,
-        subcategory : subcategory,
-        picpath     : req.file.path,
-        location    : location,
-        eventlistid : null,
-        desc        : desc
-    });
+    if(req.file){
+            newitem = new Item({
+            owner       : email,
+            itemtype    : itemtype,
+            title       : title,
+            category    : category,
+            subcategory : subcategory,
+            picpath     : req.file.path,
+            location    : location,
+            eventlistid : null,
+            desc        : desc
+        });
+    }else{
+            newitem = new Item({
+            owner       : email,
+            itemtype    : itemtype,
+            title       : title,
+            category    : category,
+            subcategory : subcategory,
+            picpath     : 'uploads/defult.jpg',
+            location    : location,
+            eventlistid : null,
+            desc        : desc
+        });
+    }
     console.log(newitem);
     newitem.save()
         .then(async item => {
@@ -342,6 +358,35 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
             res.status(200).json(answer);
         })
         .catch(err => console.log(err));
+});
+
+//delete item
+router.delete('/DeleteItem' , (req,res) => {
+    let id = req.body.id;
+    let email = req.body.email;
+    Item.findOne({_id : id})
+        .then(item => {
+            /*
+            if(item.owner !== email)
+                res.status(200).send(`user are not item owner`);
+            */
+            Event.deleteOne({_id : item.eventlistid})
+                .then(event => {
+                    if(event.deletedCount){
+                        Item.deleteOne({_id : id})
+                            .then(item => {
+                                if(item.deletedCount)
+                                    res.status(200).send('Item deleted');
+                                res.status(200).send('Item was not found');
+                            })
+                            .catch(err => res.status(200).send( `error in delete() ${err}`))
+                    }else{
+                        res.status(200).send(`can't delete events attach to item` )
+                    }
+                })
+                .catch(err => res.status(200).send( `error in event delete() ${err}`))
+        })
+        .catch(err => res.status(200).send(`can't find Item by id ${err}`))
 });
 
 

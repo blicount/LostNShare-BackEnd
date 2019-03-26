@@ -92,5 +92,33 @@ router.post('/insertSubCategory' , async (req,res) => {
 
 });
 
+//delete category
+router.delete('/DeleteCategory' , (req,res) => {
+    let id = req.body.id;
+    /*
+    if(!user.ismanager)
+        res.status(200).send('user dont have permission to delete');
+    */
+    Category.findOne({_id : id})
+        .then(cat =>  {
+            SubCategory.deleteOne({_id : cat.subcategoriesid})
+                .then(subcat => {
+                    if(subcat.deletedCount){
+                        Category.deleteOne({_id : id})
+                            .then(cat => {
+                                if(cat.deletedCount)
+                                    res.status(200).send('Category and SubCategory deleted');
+                                res.status(200).send('Category was not found');
+                            })
+                            .catch(err => res.status(200).send( `error in delete() ${err}`))
+                    }else{
+                        res.status(200).send(`can't delete sub category attach to category` )
+                    }
+                })
+                .catch(err => res.status(200).send( `error in subcategory delete() ${err}`))
+        })
+    
+});
+
 module.exports = router;
 
