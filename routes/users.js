@@ -20,14 +20,14 @@ router.get('/register', (req,res) => {
     });
 
 // get user data
-router.get('/userdetails/' , (req,res) => {
-    let email = req.header('email');
+router.post('/userdetails/' , (req,res) => {
+    let email = req.body.email;
     User.findOne({email : email })
         .then(user =>{
             if(user){
                 res.status(200).json(user);
             }else{
-                res.status(200).send('user details not found');
+                res.status(200).send('user not found');
             }
         });        
 });
@@ -124,8 +124,8 @@ router.get('/logout', (req, res) => {
 
 // check if the user is manger
 
-router.get( '/CheckIfManger' , (req,res) => {
-    const email = req.header('email');
+router.post( '/CheckIfManger' , (req,res) => {
+    const email = req.body.email;
     User.findOne({email:email})
         .then(user => {
             if(user){

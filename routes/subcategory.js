@@ -6,8 +6,8 @@ const Category      = require('../models/Category');
 
 //get all categorys
 
-router.get('/getAllSubCategoryByCategory/:category', (req,res) => {
-    let categoryname = req.params.category;
+router.post('/getAllSubCategoryByCategory', (req,res) => {
+    let categoryname = req.body.category;
     console.log(categoryname);
     Category.findOne({name : categoryname})
         .then(category => {

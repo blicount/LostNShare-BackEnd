@@ -4,7 +4,7 @@ const Event      = require('../models/Event');
 
 //get event list
 
-class Events{
+class Events{ 
 
     constructor(){}
     getevent(eventid){
@@ -44,5 +44,5 @@ class Events{
     }
 }
 
-module.exports =Events;
+module.exports = Events;
 
