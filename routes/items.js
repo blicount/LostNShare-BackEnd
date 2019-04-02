@@ -12,9 +12,9 @@ const storage    = multer.diskStorage({
     },
 
     filename : (req , file , cb) =>{
-        cb(null ,file.originalname);
+        cb(null ,Date.now() + file.originalname);
     }
-})
+});
 
 // validate file type
 const filter = (req , file , cb) => {
@@ -380,18 +380,29 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
 });
 
 //update item status 
-router.post( '/UpdateItemState' , (req,res)=> {
+router.put( '/UpdateItem' , (req,res)=> {
     let id = req.body.id;
     let newstate = req.body.state;
-
-    Item.updateOne({_id : id},{$set: { itemstate : newstate }} )
+    let title = req.body.title;
+    let category = req.body.category;
+    let subcategory = req.body.subcategory;
+    let location = req.body.location;
+    let desc = req.body.desc;
+    Item.updateOne({_id : id},{$set: { 
+                                    itemstate : newstate ,
+                                     updatedate: Date.now(),
+                                     title:title,
+                                     category: category,
+                                     subcategory : subcategory,
+                                     location : location,
+                                     desc : desc}} )
         .then(item =>{
             if(item.n){ 
                 if(item.nModified){
-                    createEvent(id , `item state change to ${newstate}` );
-                    res.status(200).send(`Item state was change seccsesfuly`);
+                    createEvent(id , `item updated in ${Date.now()}` );
+                    res.status(200).send(`Item updated seccsesfuly`);
                 }else{
-                    res.status(200).send(`Item state was not change`);
+                    res.status(200).send(`Item was not updated`);
                 }     
             }else{
                 res.status(200).send(`Item was not found`);
@@ -406,10 +417,8 @@ router.delete('/DeleteItem' , (req,res) => {
     let email = req.body.email;
     Item.findOne({_id : id})
         .then(item => {
-            /*
             if(item.owner !== email)
                 res.status(200).send(`user are not item owner`);
-            */
             Event.deleteOne({_id : item.eventlistid})
                 .then(event => {
                     if(event.deletedCount){
