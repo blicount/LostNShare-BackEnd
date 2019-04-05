@@ -5,7 +5,7 @@ const { ensureAuthenticated } = require('../config/auth');
 
 //home page
 router.get('/', (req,res) =>{
-    res.redirect('http://exmple.com');
+    res.redirect('https://lost-n-share.herokuapp.com/');
 });
 
 //logged in page

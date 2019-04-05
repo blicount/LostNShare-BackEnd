@@ -324,10 +324,7 @@ router.post('/getItemByOwner', (req,res) => {
 
 //create Item
 router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
-    console.log(req.file);
     let answer = {};
-    console.log('---------------------');
-    console.log(req.file);
     let newitem;
     const {email,itemtype,title, category, subcategory,location,desc } = req.body;
     if(req.file){
@@ -380,7 +377,7 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
 });
 
 //update item status 
-router.put( '/UpdateItem' , (req,res)=> {
+router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
     let id = req.body.id;
     let newstate = req.body.state;
     let title = req.body.title;
@@ -388,11 +385,13 @@ router.put( '/UpdateItem' , (req,res)=> {
     let subcategory = req.body.subcategory;
     let location = req.body.location;
     let desc = req.body.desc;
+    if(req.file){
     Item.updateOne({_id : id},{$set: { 
                                     itemstate : newstate ,
-                                     updatedate: Date.now(),
+                                     updatedate: Date.now() ,
                                      title:title,
                                      category: category,
+                                     picpath:req.file.path, 
                                      subcategory : subcategory,
                                      location : location,
                                      desc : desc}} )
@@ -409,6 +408,30 @@ router.put( '/UpdateItem' , (req,res)=> {
             }
         })
         .catch(err => console.log(err));
+    }else{
+        Item.updateOne({_id : id},{$set: { 
+                                    itemstate : newstate ,
+                                    updatedate: Date.now() ,
+                                    title:title,
+                                    category: category,
+                                    subcategory : subcategory,
+                                    location : location,
+                                    desc : desc}} )
+            .then(item =>{
+                if(item.n){ 
+                    if(item.nModified){
+                        createEvent(id , `item updated in ${Date.now()}` );
+                        res.status(200).send(`Item updated seccsesfuly`);
+                    }else{
+                        res.status(200).send(`Item was not updated`);
+                    }     
+                }else{
+                    res.status(200).send(`Item was not found`);
+                }
+            })
+            .catch(err => console.log(err));
+
+    }
 });
 
 //delete item
