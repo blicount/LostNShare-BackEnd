@@ -2,36 +2,7 @@ const express   = require('express');
 const router    = express.Router();
 const Item      = require('../models/Item'); 
 const Event     = require('../models/Event');
-const multer    = require('multer');
-const moment    = require('moment');
-
-// imeg storege config
-const storage    = multer.diskStorage({
-    destination : (req , file , cb) =>{
-        cb(null , './uploads');
-    },
-
-    filename : (req , file , cb) =>{
-        cb(null ,Date.now() + file.originalname);
-    }
-});
-
-// validate file type
-const filter = (req , file , cb) => {
-    if( file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/pdf'){
-        cb(null , true);
-    }else{
-        cb(new Error('file type error') , false);
-    }
-};
-
-const upload = multer({
-    storage     : storage, 
-    //limiting uploading Image size to 2 mb
-    limits      : {fileSize : 1024*1024*2},
-    fileFilter  : filter
-});
-
+const upload   = require('../services/uploadtos3');
 
 // initalize event data object
   function initEvent(req,res){
@@ -326,6 +297,7 @@ router.post('/getItemByOwner', (req,res) => {
 router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
     let answer = {};
     let newitem;
+    console.log(req.file.location);
     const {email,itemtype,title, category, subcategory,location,desc } = req.body;
     if(req.file){
             newitem = new Item({
@@ -334,7 +306,7 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
             title       : title,
             category    : category,
             subcategory : subcategory,
-            picpath     : req.file.path,
+            picpath     : req.file.location,
             location    : location,
             eventlistid : null,
             desc        : desc
@@ -379,6 +351,7 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
 //update item status 
 router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
     let id = req.body.id;
+    let type = req.body.type    
     let newstate = req.body.state;
     let title = req.body.title;
     let category = req.body.category;
@@ -386,15 +359,19 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
     let location = req.body.location;
     let desc = req.body.desc;
     if(req.file){
-    Item.updateOne({_id : id},{$set: { 
-                                    itemstate : newstate ,
-                                     updatedate: Date.now() ,
-                                     title:title,
-                                     category: category,
-                                     picpath:req.file.path, 
-                                     subcategory : subcategory,
-                                     location : location,
-                                     desc : desc}} )
+    Item.updateOne({_id : id},
+        {$set: {
+            itemtype    : type,
+            itemstate   : newstate ,
+            updatedate  : Date.now() ,
+            title       : title,
+            category    : category,
+            picpath     : req.file.location, 
+            subcategory : subcategory,
+            location    : location,
+            desc : desc
+            }
+        })
         .then(item =>{
             if(item.n){ 
                 if(item.nModified){
@@ -409,14 +386,18 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
         })
         .catch(err => console.log(err));
     }else{
-        Item.updateOne({_id : id},{$set: { 
-                                    itemstate : newstate ,
-                                    updatedate: Date.now() ,
-                                    title:title,
-                                    category: category,
-                                    subcategory : subcategory,
-                                    location : location,
-                                    desc : desc}} )
+        Item.updateOne({_id : id},
+            {$set: {
+                itemtype    : type, 
+                itemstate   : newstate ,
+                updatedate  : Date.now() ,
+                title       : title,
+                category    : category,
+                subcategory : subcategory,
+                location    : location,
+                desc        : desc
+                }
+            })
             .then(item =>{
                 if(item.n){ 
                     if(item.nModified){
