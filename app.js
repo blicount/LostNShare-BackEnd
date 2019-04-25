@@ -6,10 +6,6 @@ const express       = require('express'),
     passport        = require('passport'),
     mongoose        = require('mongoose'),
     flash           = require('connect-flash'),
-    // categories = require('./controllers/categories.ctl'),
-    // group = require('./controllers/group.ctl'),
-    // options = require('./controllers/options.ctl'), 
-    //users = require('./controllers/users.ctl'),
     app         = express(),
     port        = process.env.PORT || 3000;
 
