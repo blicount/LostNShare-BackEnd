@@ -2,14 +2,14 @@ const multer    = require('multer');
 const moment    = require('moment');
 const multerS3  = require('multer-s3');
 const aws       = require('aws-sdk');
-const keys      = require('../config/awskey');
+const keys      = require('../config/awskeys');
 
 
 
 
 aws.config.update({
-    secretAccessKey: keys.AWSSecretKey,
-    accessKeyId: keys.AWSAccessKeyId,
+    secretAccessKey: keys.AWS_SEC_KEY,
+    accessKeyId: keys.AWS_ACC_KEY,
     region: 'us-east-1' // region of your bucket
 });
 
