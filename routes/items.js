@@ -109,12 +109,6 @@ router.post('/getAllItemsByFillters/', (req,res) => {
     let type = req.body.type;    
     startdate ? startdate : startdate= new Date('1995-12-17T03:24:00'); ;
     enddate ? enddate : enddate= Date.now() ;
-    console.log(category);
-    console.log(subcategory);
-    console.log(location);
-    console.log(startdate);
-    console.log(enddate);
-    console.log(type);
 
     if(category && subcategory && location){    // // got category & subcategory & location 
         Item.find({itemstate:'active',
@@ -318,7 +312,7 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
             title       : title,
             category    : category,
             subcategory : subcategory,
-            picpath     : 'uploads/defult.jpg',
+            picpath     : 'https://lns-pic-storage.s3.amazonaws.com/placeholder.png',
             location    : location,
             eventlistid : null,
             desc        : desc

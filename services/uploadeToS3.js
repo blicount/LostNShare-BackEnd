@@ -15,6 +15,15 @@ aws.config.update({
 
 const s3 = new aws.S3();
 
+// validate file type
+const filter = (req , file , cb) => {
+  if( file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/pdf'){
+      cb(null , true);
+  }else{
+      cb(new Error('file type error') , false);
+  }
+};
+
 const storage = multerS3({
     s3: s3,
     bucket: 'lns-pic-storage',
@@ -29,14 +38,7 @@ const storage = multerS3({
     }
   })
 
-// validate file type
-const filter = (req , file , cb) => {
-    if( file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/pdf'){
-        cb(null , true);
-    }else{
-        cb(new Error('file type error') , false);
-    }
-};
+
 
 const upload = multer({
     storage     : storage, 
