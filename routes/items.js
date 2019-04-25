@@ -2,7 +2,8 @@ const express   = require('express');
 const router    = express.Router();
 const Item      = require('../models/Item'); 
 const Event     = require('../models/Event');
-const upload   = require('../services/uploadtos3');
+const moment    = require('moment');
+const upload    = require('../services/uploadtos3');
 
 // initalize event data object
   function initEvent(req,res){
@@ -297,7 +298,6 @@ router.post('/getItemByOwner', (req,res) => {
 router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
     let answer = {};
     let newitem;
-    console.log(req.file.location);
     const {email,itemtype,title, category, subcategory,location,desc } = req.body;
     if(req.file){
             newitem = new Item({
@@ -351,7 +351,7 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
 //update item status 
 router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
     let id = req.body.id;
-    let type = req.body.type    
+    let type = req.body.type;
     let newstate = req.body.state;
     let title = req.body.title;
     let category = req.body.category;
@@ -360,15 +360,15 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
     let desc = req.body.desc;
     if(req.file){
     Item.updateOne({_id : id},
-        {$set: {
-            itemtype    : type,
-            itemstate   : newstate ,
-            updatedate  : Date.now() ,
-            title       : title,
-            category    : category,
-            picpath     : req.file.location, 
+        {$set: { 
+            itemtype : type,
+            itemstate : newstate ,
+            updatedate: Date.now() ,
+            title:title,
+            category: category,
+            picpath:req.file.location, 
             subcategory : subcategory,
-            location    : location,
+            location : location,
             desc : desc
             }
         })
@@ -387,15 +387,15 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
         .catch(err => console.log(err));
     }else{
         Item.updateOne({_id : id},
-            {$set: {
-                itemtype    : type, 
-                itemstate   : newstate ,
-                updatedate  : Date.now() ,
-                title       : title,
-                category    : category,
+            {$set: { 
+                itemtype : type,
+                itemstate : newstate ,
+                updatedate: Date.now() ,
+                title:title,
+                category: category,
                 subcategory : subcategory,
-                location    : location,
-                desc        : desc
+                location : location,
+                desc : desc
                 }
             })
             .then(item =>{
