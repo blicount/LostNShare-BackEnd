@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+const match_item = new mongoose.Schema({
+    itemId : String ,
+    rank : Number 
+},{_id : false});
+
 const ItemSchema = new mongoose.Schema({
     itemtype:{
         type: String,
@@ -18,38 +23,52 @@ const ItemSchema = new mongoose.Schema({
         requierd:true
     },
     desc:{
-        type : String,
+        type : String
     },
     itemstate:{
         type: String,
         default: 'active'
     },
     picpath:{
-        type: String,
+        type: String
     },
     location:{
         //need to be type Location
-        type: String,
+        type: String
     },
     propertiesid:{
         // need to be type Properties/id
-        type: String,
+        type: String
     },
     eventlistid:{
-        type: String,
+        type: String
     },
     careationdate:{
         type: Date,
-        default:Date.now()
+        default: Date.now()
     },
     updatedate:{
         type: Date,
-        default:Date.now()
+        default: Date.now()
     },
     owner:{
-        type:String,
-        required:true
+        type: String,
+        required: true
+    },
+    // need to add...
+    matching_items:{
+        type: [match_item]
+    },
+    last_match:{
+        type: Date
+    },
+    color:{
+        type: String
+    },
+    shape:{
+        type: String
     }
+
 
 }); 
 

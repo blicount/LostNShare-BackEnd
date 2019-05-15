@@ -4,6 +4,14 @@ const Item      = require('../models/Item');
 const Event     = require('../models/Event');
 const moment    = require('moment');
 const upload    = require('../services/uploadeToS3');
+const matching  = require('../services/matching_service')
+
+//get all items
+router.get('/matchingService', (req,res) => {
+    matching();
+    res.status(200).send('finished matching service');
+
+});
 
 // initalize event data object
   function initEvent(req,res){
@@ -43,6 +51,7 @@ function createEvent(itemid,eventdesc){
     
         
 }
+
 
 //get all active items
 router.get('/getAllActiveItems', (req,res) => {
@@ -303,7 +312,8 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
             picpath     : req.file.location,
             location    : location,
             eventlistid : null,
-            desc        : desc
+            desc        : desc,
+            last_match  : null
         });
     }else{
             newitem = new Item({
@@ -315,7 +325,9 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
             picpath     : 'https://lns-pic-storage.s3.amazonaws.com/placeholder.png',
             location    : location,
             eventlistid : null,
-            desc        : desc
+            desc        : desc,
+            last_match  : null
+
         });
     }
     console.log(newitem);
