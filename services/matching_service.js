@@ -59,7 +59,7 @@ function getItemById(id){
 function check_match_rank(item1 , item2){
 
     return new Promise((resolve,reject) =>{
-        let match_rank = 0;
+    let match_rank = 0;
     if(item1.category === item2.category)
         match_rank++;
     if(item1.subcategory === item2.subcategory)
@@ -77,12 +77,16 @@ function check_match_rank(item1 , item2){
 
 function chackIfBigger(num , matchs_array){
 //   console.log('got to chack if bigger');
+    if(num === 0){
+        return false;
+    }
+    if(matchs_array.length === 0 && num > 0 ){
+        return true;
+    }
     for(const item of matchs_array) {
-            if(typeof(item.rank) === 'number'){
                 if(num >= item.rank){
                 return true;
                 }
-            }
     }
     return false;
 }
@@ -101,32 +105,68 @@ function updateLastMatchDate(id){
             }
         })
         .catch(err => console.log(err));
-    console.log(massege);
 }
 
-function updateMatchingItemsArray(itemid,matcheditem){
+function updateMatchingItemsArray(itemid,matcheditem,numbermatcheditem){
     let messages=[];
-    Item.updateOne({_id:itemid},{
-        $push: {
-            matching_items:{ 
-                $each : [matcheditem],
-                $position : 0 
+    if(numbermatcheditem < 4){
+        Item.updateOne({_id:itemid},{
+            $push: {
+                matching_items:{ 
+                    $each : [matcheditem],
+                    $sort : {rank : 1}
+                } 
             } 
-        } 
-    })
-    .then(it =>{
-        if(it.n){ 
-            if(it.nModified){
-                updateLastMatchDate(itemid._id);
-                messages.push(`matching items was modified seccsesfuly`);
+        })
+        .then(it =>{
+            if(it.n){ 
+                if(it.nModified){
+                    updateLastMatchDate(itemid._id);
+                    messages.push(`matching items was modified seccsesfuly`);
+                }else{
+                    messages.push(`faild to modified matching items`);
+                }       
             }else{
-                messages.push(`faild to modified matching items`);
-            }       
-        }else{
-            messages.push(`item wasn't found`);
-        }
-    })
-    .catch(err => console.log(err));
+                messages.push(`item wasn't found`);
+            }
+        })
+        .catch(err => console.log(err));
+    }else{
+        Item.update( { _id: itemid }, { $pop: { matching_items: -1 } } )
+            .then(it =>{
+                if(it.n){ 
+                    if(it.nModified){
+                        messages.push(`matching items was full so one item poped`);
+                            Item.updateOne({_id:itemid},{
+                                $push: {
+                                    matching_items:{ 
+                                        $each : [matcheditem],
+                                        $sort : {rank : 1}
+                                    } 
+                                } 
+                            })
+                            .then(it =>{
+                                if(it.n){ 
+                                    if(it.nModified){
+                                        updateLastMatchDate(itemid._id);
+                                        messages.push(`matching items was modified seccsesfuly`);
+                                    }else{
+                                        messages.push(`faild to modified matching items`);
+                                    }       
+                                }else{
+                                    messages.push(`item wasn't found`);
+                                }
+                            })
+                            .catch(err => console.log(err));
+                    }else{
+                        messages.push(`faild to pop item from matching items`);
+                    }       
+                }else{
+                    messages.push(`item wasn't found`);
+                }
+            })
+            .catch(err => console.log(err));
+    }
 }
 
 
@@ -139,6 +179,7 @@ async function matching_service(){
     let messages = [];
     for(let lost_item of  lost_items_list){
         for(let found_item of found_items_list){
+            if(moment(lost_item.last_match).isAfter(found_item.careationdate)) continue;
             match_rank = await check_match_rank(lost_item , found_item);
             let lost_matching_items = lost_item.matching_items;
             let found_matching_items = found_item.matching_items;
@@ -150,14 +191,15 @@ async function matching_service(){
                     itemId : found_item._id,
                     rank : match_rank
                 }
-                updateMatchingItemsArray(current_lost_item,new_match_item);                
+                updateMatchingItemsArray(current_lost_item,new_match_item,lost_matching_items.length);                
             }
+            if(moment(found_item.last_match).isAfter(lost_item.careationdate)) continue;
             if(chackIfBigger(match_rank,found_matching_items)){
-                let new_match_item = {
-                    itemId : lost_item._id,
-                    rank : match_rank
-                }
-                updateMatchingItemsArray(current_found_item,new_match_item);
+                    let new_match_item = {
+                        itemId : lost_item._id,
+                        rank : match_rank
+                    }
+                    updateMatchingItemsArray(current_found_item,new_match_item,found_matching_items.length);
             }
         }    
     }

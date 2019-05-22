@@ -156,15 +156,15 @@ router.post('/getAllItemsByFillters/', (req,res) => {
                 }
             });
         }else if(location){ // got category & location
-            Item.find({itemstate:'active',
+            Item.find({itemstate:'active', 
             itemtype : type, 
             category : category, 
-            location : location,
-            careationdate: {
-                $gte: startdate,
-                $lte: enddate
+            location : location, 
+            careationdate: { 
+                $gte: startdate, 
+                $lte: enddate 
             } 
-        }).sort({careationdate: -1 } )
+        }).sort({careationdate: -1 } ) 
             .then(items => {
                 if(items.length > 0){
                     res.status(200).json(items);
