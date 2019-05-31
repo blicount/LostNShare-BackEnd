@@ -1,57 +1,35 @@
-const express   = require('express');
-const router    = express.Router();
-const Item      = require('../models/Item'); 
-const Event     = require('../models/Event');
-const moment    = require('moment');
-const upload    = require('../services/uploadeToS3');
-const matching  = require('../services/matching_service')
+const express       = require('express');
+const router        = express.Router();
+const Item          = require('../models/Item'); 
+const moment        = require('moment');
+const upload        = require('../services/uploadeToS3');
+const matching      = require('../services/matching_service')
+const eventhndler   = require('../services/eventHndler');
+const Event         = require('../models/Event');
 
-//get all items
-router.get('/matchingService', (req,res) => {
-    matching();
-    res.status(200).send('finished matching service');
 
-});
-
-// initalize event data object
-  function initEvent(req,res){
-    return new Promise((resolve,reject)=> {
-        let newevent = new Event({
-            events : ['item was created'+Date.now()]
-        }); 
-        newevent.save()
-            .then(event => {
-                if(event){
-                    console.log('eventid -------------- '+event._id);
-                    resolve(event._id);
-                }else
-                    resolve('event creation faild');
-            })
-            .catch(err => {reject(err)});  
+function getItemById(id){
+    return new Promise((resolve , reject) => {
+        Item.findOne({_id: id})
+        .then(item => {
+            if(item){
+                resolve(item);
+            }else{
+                reject('getitembyid function : item was not found');
+            }
+        })
+        .catch(err => console.log(err))
     });
 }
 
-function createEvent(itemid,eventdesc){
-    Item.findOne({_id : itemid})
-        .then(item => {
-            if(item){
-                Event.updateOne({_id : item.eventlistid},{$push: {events:eventdesc }})
-                    .then(event=>{
-                        if(event.nModified){
-                            return 1;
-                        }else
-                            return 0;
-                    })
-                    .catch(err=> console.log(err))//res.status(200).send('category careation failed'))
-            }else{
-                return 0;
-            }
-        })
-        .catch()
-    
-        
-}
+//get all items
+router.get('/matchingServiceForItem/:id', (req,res) => {
+    let id = req.params.id;
+    console.log(id);
+    matching.match_single(id);
+    res.status(200).send('finished matching service');
 
+});
 
 //get all active items
 router.get('/getAllActiveItems', (req,res) => {
@@ -304,36 +282,41 @@ router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
     const {email,itemtype,title, category, subcategory,location,desc } = req.body;
     if(req.file){
             newitem = new Item({
-            owner       : email,
-            itemtype    : itemtype,
-            title       : title,
-            category    : category,
-            subcategory : subcategory,
-            picpath     : req.file.location,
-            location    : location,
-            eventlistid : null,
-            desc        : desc,
-            last_match  : null
+            owner           : email,
+            itemtype        : itemtype,
+            title           : title,
+            category        : category,
+            subcategory     : subcategory,
+            picpath         : req.file.location,
+            location        : location,
+            eventlistid     : null,
+            desc            : desc,
+            matching_items  : [],
+            last_match      : null,
+            color           : color,
+            shape           : shape
         });
     }else{
             newitem = new Item({
-            owner       : email,
-            itemtype    : itemtype,
-            title       : title,
-            category    : category,
-            subcategory : subcategory,
-            picpath     : 'https://lns-pic-storage.s3.amazonaws.com/placeholder.png',
-            location    : location,
-            eventlistid : null,
-            desc        : desc,
-            last_match  : null
-
+            owner           : email,
+            itemtype        : itemtype,
+            title           : title,
+            category        : category,
+            subcategory     : subcategory,
+            picpath         : 'https://lns-pic-storage.s3.amazonaws.com/placeholder.png',
+            location        : location,
+            eventlistid     : null,
+            desc            : desc,
+            matching_items  : [],
+            last_match      : null,
+            color           : color,
+            shape           : shape
         });
     }
     console.log(newitem);
     newitem.save()
         .then(async item => {
-            let eventid = await initEvent();
+            let eventid = await eventhndler.initEvent();
             Item.updateOne({_id:item._id} ,{$set: { eventlistid : eventid } } )
                 .then(it =>{
                     if(it.n){ 
@@ -381,7 +364,7 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
         .then(item =>{
             if(item.n){ 
                 if(item.nModified){
-                    createEvent(id , `item updated in ${Date.now()}` );
+                    eventhndler.createEvent(id , `item updated in ${moment()}` );
                     res.status(200).send(`Item updated seccsesfuly`);
                 }else{
                     res.status(200).send(`Item was not updated`);
@@ -407,7 +390,7 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
             .then(item =>{
                 if(item.n){ 
                     if(item.nModified){
-                        createEvent(id , `item updated in ${Date.now()}` );
+                        eventhndler.createEvent(id , `item updated in ${moment()}` );
                         res.status(200).send(`Item updated seccsesfuly`);
                     }else{
                         res.status(200).send(`Item was not updated`);
@@ -446,6 +429,22 @@ router.delete('/DeleteItem' , (req,res) => {
                 .catch(err => res.status(200).send( `error in event delete() ${err}`))
         })
         .catch(err => res.status(200).send(`can't find Item by id ${err}`))
+});
+
+router.get('/getAllItemEvents/:id', (req,res) => {
+    let itemid = req.params.id;
+    console.log(itemid);
+    getItemById(itemid)
+        .then(async item =>{
+            let eventarray = await eventhndler.getItemEventList(item.eventlistid) 
+                console.log(eventarray);   
+                if(eventarray.length > 0){
+                    res.status(200).json(eventarray);
+                }else{
+                    res.status(200).send('no events found');
+                }
+        })
+        .catch(err=> console.log(err))
 });
 
 

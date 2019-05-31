@@ -55,7 +55,6 @@ const ItemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    // need to add...
     matching_items:{
         type: [match_item]
     },
