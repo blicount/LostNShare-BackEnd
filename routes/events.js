@@ -1,48 +1,31 @@
-const express   = require('express');
-const router    = express.Router();
-const Event      = require('../models/Event'); 
-
-//get event list
-
-class Events{ 
-
-    constructor(){}
-    getevent(eventid){
-        Event.findOne({_id : eventid})
-            .then(event => {
-                if(event)
-                    return event;
-                else
-                    return 'oops, no events found';
-            });
-    }
+const express       = require('express');
+const router        = express.Router();
+const Event         = require('../models/Event'); 
+const userhndler    = require('../services/userHndler');
 
 
-    createEvent(eventid,eventdesc){
-        Event.findOne({_id : eventid})
-            .then(event => {
-                if(event){
-                    event.events.push(eventdesc);
-                    return event._id;
-                }else
-                    return 'oops, no events found';
-            });
-    }
+//get all system events 
 
-    initEvent(req,res){
-        let newevent = new Event({
-            events : 'item was created'
-        }); 
-        newevent.save()
-        .then(event => {
-            if(event){
-                return 'event._id';
-            }else
-                return 'event creation faild';
-        })
-        .catch(err => {return 'got error from event.save()'});
+function movefromarrays(first,second){
+    for(let elem of second){
+        first.push(elem);
     }
 }
 
-module.exports = Events;
+router.get('/allSystemEvents',(req,res) =>{
+    let allevents = [];
+    Event.find({})
+        .then(events => {
+            if(events){
+                for(let event of events){
+                    movefromarrays(allevents,event.events);    
+                }
+                res.status(200).send(allevents);
+            }else{
+                res.status(200).send('no events found');
+            }
+        })
+        .catch()
+});
+module.exports = router;
 

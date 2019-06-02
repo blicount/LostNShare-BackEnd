@@ -3,7 +3,7 @@ const router    = express.Router();
 const passport  = require('passport');
 const User      = require('../models/User'); 
 const bcrypt    = require('bcryptjs');
-const path = require('path');
+const userhndler = require('../services/userHndler');
 
 //login page
 router.get('/login', (req,res) =>{
@@ -18,6 +18,8 @@ router.get('/register', (req,res) => {
     res.status(200).json('got to the http://exmple.com/users/register route');
     //res.redirect('http://exmple.com/users/register');
     });
+
+
 
 // get user data
 router.post('/userdetails/' , (req,res) => {
@@ -124,25 +126,14 @@ router.get('/logout', (req, res) => {
 
 // check if the user is manger
 
-router.post( '/CheckIfManger' , (req,res) => {
+router.post( '/CheckIfManger' , async (req,res) => {
     const email = req.body.email;
-    User.findOne({email:email})
-        .then(user => {
-            if(user){
-                if(user.ismanager){
-                    res.status(200).send('true');
-                }else{ 
-                    res.status(200).send('false');
-                }
-            }else{
-                res.status(200).send('false');
-            }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(200).send(`false error`)
-    })
-
+    await userhndler.checkIfManger(email)
+    if(await userhndler.checkIfManger(email)){
+        res.status(200).send(true);
+    }else{
+    res.status(200).send(false);
+    }
 });
 
 //converting regular user to manager user

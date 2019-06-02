@@ -54,6 +54,21 @@ module.exports = {
             })
             .catch(err => console.log(err))
         });
+    },
+
+    getAllEventList: function getAllEventList(eventid){
+        return new Promise((resolve , reject) => {
+            Event.findOne({})
+            .then(eventlist => {
+                if(eventlist){
+                    resolve(eventlist.events);
+                }else{
+                    reject('getAllEventList function : events was not found');
+                }
+            })
+            .catch(err => console.log(err))
+        });
     }
+    
 }
 

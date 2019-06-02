@@ -34,17 +34,13 @@ router.get('/getAllCategories/', (req,res) => {
 
 router.post('/insertCategory/' , (req,res) =>{
         const category = req.body.category;
-        console.log(category);
         const subcategory = req.body.subcategory;
-        console.log(subcategory);
         let newsubcategory = new SubCategory({
             subcategorylist : subcategory
         });
 
         newsubcategory.save()
             .then( subcat => {
-                console.log(subcat);
-                console.log(subcat.length);
                 if(subcat){
                     let newcategory = new Category({
                         name : category,
@@ -70,9 +66,7 @@ router.post('/insertCategory/' , (req,res) =>{
 
 router.post('/insertSubCategory' , async (req,res) => {
     let category = req.body.category;
-    console.log(category);
     let subcategory = req.body.subcategory;
-    console.log(subcategory);
     let subcategoryid;
     try{
     subcategoryid = await getSubCtegoryid(category);
@@ -80,7 +74,6 @@ router.post('/insertSubCategory' , async (req,res) => {
     catch(e){
         res.status(200).send(`category careation failed ----- ${e} return from getSubCtegoryid method `);  
     }
-    console.log( `we got the ${subcategoryid}`);
     SubCategory.updateOne({_id : subcategoryid},{$push: {subcategorylist: {$each: subcategory }}})
         .then(subcat=>{
             if(subcat){
@@ -93,7 +86,7 @@ router.post('/insertSubCategory' , async (req,res) => {
 });
 
 //delete category
-router.delete('/DeleteCategory' , (req,res) => {
+router.post('/DeleteCategory' , (req,res) => {
     let id = req.body.id;
     /*
     if(!user.ismanager)
