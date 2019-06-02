@@ -437,7 +437,6 @@ router.get('/getAllItemEvents/:id', (req,res) => {
     getItemById(itemid)
         .then(async item =>{
             let eventarray = await eventhndler.getItemEventList(item.eventlistid) 
-                console.log(eventarray);   
                 if(eventarray.length > 0){
                     res.status(200).json(eventarray);
                 }else{

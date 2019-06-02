@@ -72,8 +72,9 @@ app.use('/', require('./routes/index'));
 app.use('/users',require('./routes/users'));
 app.use('/items',require('./routes/items'));
 app.use('/events',require('./routes/events'));
-app.use('/categories',require('./routes/category'));
-app.use('/subcategories',require('./routes/subcategory'));
+app.use('/locations',require('./routes/locations'));
+app.use('/categories',require('./routes/categories'));
+app.use('/subcategories',require('./routes/subcategories'));
 
 app.all('*',(req,res) =>{
     res.send('Got lost? This is a friendly 404 page :)');
