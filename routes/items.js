@@ -279,7 +279,7 @@ router.post('/getItemByOwner', (req,res) => {
 router.post('/createItem', upload.single('ItemImage') ,(req,res) => {
     let answer = {};
     let newitem;
-    const {email,itemtype,title, category, subcategory,location,desc } = req.body;
+    const {email,itemtype,title, category, subcategory,location,desc,color,shape } = req.body;
     if(req.file){
             newitem = new Item({
             owner           : email,

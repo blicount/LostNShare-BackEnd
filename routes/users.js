@@ -19,7 +19,18 @@ router.get('/register', (req,res) => {
     //res.redirect('http://exmple.com/users/register');
     });
 
+//get all system users
 
+router.get('/getAllUsers' ,(req,res) => {
+    User.find({ismanager : 0})
+        .then(users=>{
+            if(users.length>0){
+                res.status(200).send(users);
+            }else{
+                res.status(200).send('no users found');
+            }
+        })
+});
 
 // get user data
 router.post('/userdetails/' , (req,res) => {
