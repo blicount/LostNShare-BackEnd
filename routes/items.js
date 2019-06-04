@@ -6,6 +6,7 @@ const upload        = require('../services/uploadeToS3');
 const matching      = require('../services/matching_service')
 const eventhndler   = require('../services/eventHndler');
 const Event         = require('../models/Event');
+const userhndler    = require('../services/userHndler');
 
 
 function getItemById(id){
@@ -405,30 +406,33 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
 });
 
 //delete item
-router.delete('/DeleteItem' , (req,res) => {
+router.delete('/DeleteItem' ,(req,res) => {
     let id = req.body.id;
     let email = req.body.email;
     Item.findOne({_id : id})
-        .then(item => {
-            if(item.owner !== email)
-                res.status(200).send(`user are not item owner`);
+        .then(async item => {
+            if(item.owner === email || await userhndler.checkIfManger(email)){
             Event.deleteOne({_id : item.eventlistid})
-                .then(event => {
-                    if(event.deletedCount){
+                .then(event => {    
                         Item.deleteOne({_id : id})
                             .then(item => {
-                                if(item.deletedCount)
-                                    res.status(200).send('Item deleted');
-                                res.status(200).send('Item was not found');
+                                if(item.deletedCount){
+                                    if(event.deletedCount)
+                                        res.status(200).send('Item and events attached deleted');
+                                    res.status(200).send('Item deleted without delete events attached ');
+                                }else{
+                                    res.status(200).send('Item was not found');
+                                }
                             })
                             .catch(err => res.status(200).send( `error in delete() ${err}`))
-                    }else{
-                        res.status(200).send(`can't delete events attach to item` )
-                    }
+                    
                 })
                 .catch(err => res.status(200).send( `error in event delete() ${err}`))
+            }else{
+                res.status(202).send('user are not authorized to delete item');
+            }    
         })
-        .catch(err => res.status(200).send(`can't find Item by id ${err}`))
+        .catch(err => res.status(200).send(`error in find Item by id ${err}`))
 });
 
 router.get('/getAllItemEvents/:id', (req,res) => {
