@@ -255,4 +255,22 @@ router.post( '/ChangePassword', (req,res) => {
     });    
 });
 
+router.delete('/deleteUser',async (req,res)=>{
+    let manager = req.body.manager;
+    let id = req.body.id;
+    if(await userhndler.checkIfManger(manager)){
+    User.deleteOne({_id:id})
+        .then(user => {
+            if(user.deletedCount){
+                res.status(200).send('user deleted');
+            }else{
+                res.status(200).send('user was not found');
+            }
+        })
+        .catch(err => console.log(err))
+    }else{
+        res.status(200).send('no authorizetion to delete item');    
+    }
+});
+
 module.exports = router;
