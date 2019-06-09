@@ -59,20 +59,22 @@ function getItemById(id){
 function check_match_rank(item1 , item2){
 
     return new Promise((resolve,reject) =>{
-    let match_rank = 0;
+    let match_rank = 0 ;
     if(item1.category === item2.category)
-        match_rank++;
+        match_rank++ ; 
     if(item1.subcategory === item2.subcategory)
-        match_rank++
+        match_rank++ ;
     if(item1.location === item2.location)
-        match_rank++
+        match_rank++ ;
     if(item1.title === item2.title)
-        match_rank++
+        match_rank++ ;
+    if(item1.shape === item2.shape)
+        match_rank++ ;
+    if(item1.color === item2.color)
+        match_rank++ ;
     console.log(item1._id+' '+item1.itemtype +' '+item2._id+' '+item2.itemtype +' '+ match_rank);
-    
     resolve(match_rank);
-    });
-    
+    });   
 }
 
 function chackIfBigger(num , matchs_array){

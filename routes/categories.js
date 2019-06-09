@@ -99,9 +99,11 @@ router.post('/DeleteCategory' , (req,res) => {
                     if(subcat.deletedCount){
                         Category.deleteOne({_id : id})
                             .then(cat => {
-                                if(cat.deletedCount)
+                                if(cat.deletedCount){
                                     res.status(200).send('Category and SubCategory deleted');
+                                }else{
                                 res.status(200).send('Category was not found');
+                                }
                             })
                             .catch(err => res.status(200).send( `error in delete() ${err}`))
                     }else{

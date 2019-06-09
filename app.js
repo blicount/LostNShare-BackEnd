@@ -72,6 +72,8 @@ app.use('/', require('./routes/index'));
 app.use('/users',require('./routes/users'));
 app.use('/items',require('./routes/items'));
 app.use('/events',require('./routes/events'));
+app.use('/shapes',require('./routes/shapes'));
+app.use('/colors',require('./routes/colors'));
 app.use('/locations',require('./routes/locations'));
 app.use('/categories',require('./routes/categories'));
 app.use('/subcategories',require('./routes/subcategories'));
