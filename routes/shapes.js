@@ -3,7 +3,7 @@ const router    = express.Router();
 const Shape  = require('../models/Shape'); 
 
 
-//get all categorys
+//get all shapes
 
 router.get('/getAllShapes', (req,res) => {
      Shape.find({}).sort({name: 1 } )
@@ -43,8 +43,6 @@ router.post('/deleteShape' , (req,res)=>{
         })
         .catch(err => res.status(200).send( `error in delete() ${err}`))
 });
-
-
 
 
 module.exports = router;
