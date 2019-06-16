@@ -8,7 +8,7 @@ module.exports = {
     initEvent : function initEvent(req,res){
         return new Promise((resolve,reject)=> {
             let newevent = new Event({
-                events : ['item was created'+moment()]
+                events : [`item was created ${moment()}`]
             }); 
             newevent.save()
                 .then(event => {

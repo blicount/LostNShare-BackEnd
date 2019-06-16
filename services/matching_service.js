@@ -66,6 +66,8 @@ function check_match_rank(item1 , item2){
         match_rank++ ;
     if(item1.location === item2.location)
         match_rank++ ;
+    if(match_rank < 2 )
+        resolve(match_rank)
     if(item1.title === item2.title)
         match_rank++ ;
     if(item1.shape === item2.shape)

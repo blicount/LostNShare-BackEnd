@@ -207,7 +207,7 @@ router.post('/getAllItemsByFillters/', (req,res) => {
 //get Item by ID
 router.post('/getItemById', (req,res) => {
     let itemid = req.body.id;
-    Item.findOne({_id : itemid})
+    Item.findOne({_id : itemid}).sort({careationdate: -1})
         .then(item => {
             if(item){
                 res.status(200).json(item);
@@ -221,7 +221,7 @@ router.post('/getItemById', (req,res) => {
 //get Item by categoty
 router.post('/getItemByCategory', (req,res) => {
     let category = req.body.category;
-    Item.find({category : category})
+    Item.find({category : category}).sort({careationdate: -1})
         .then(item => {
             if(item.length > 0 ){
                 res.status(200).json(item);
@@ -235,7 +235,7 @@ router.post('/getItemByCategory', (req,res) => {
 //get Item by subcategoty
 router.post('/getItemBySubCategory', (req,res) => {
     let subcategory = req.body.subcategory;
-    Item.find({subcategory : subcategory})                     
+    Item.find({subcategory : subcategory}).sort({careationdate: -1})                     
         .then(item => {
             if(item.length > 0 ){
                 res.status(200).json(item);
@@ -249,7 +249,7 @@ router.post('/getItemBySubCategory', (req,res) => {
 //get Item by Location
 router.post('/getItemByLocation', (req,res) => {
     let location = req.body.location;
-    Item.find({location : location})                     
+    Item.find({location : location}).sort({careationdate: -1})                     
         .then(item => {
             if(item.length > 0 ){
                 res.status(200).json(item);
@@ -263,7 +263,7 @@ router.post('/getItemByLocation', (req,res) => {
 //get Item by owner
 router.post('/getItemByOwner', (req,res) => {
     let email = req.body.email;
-    Item.find({owner : email})                     
+    Item.find({owner : email}).sort({careationdate: -1})                     
         .then(item => {
             if(item.length > 0 ){
                 res.status(200).json(item);
@@ -348,17 +348,21 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
     let subcategory = req.body.subcategory;
     let location = req.body.location;
     let desc = req.body.desc;
+    let shape = req.body.shape;
+    let color = req.body.color;
     if(req.file){
     Item.updateOne({_id : id},
         {$set: { 
-            itemtype : type,
-            itemstate : newstate ,
-            updatedate: Date.now() ,
-            title:title,
-            category: category,
-            picpath:req.file.location, 
+            itemtype    : type,
+            itemstate   : newstate ,
+            updatedate  : Date.now() ,
+            title       : title,
+            category    : category,
+            picpath     : req.file.location, 
             subcategory : subcategory,
-            location : location,
+            location    : location,
+            color       : color,
+            shape       : shape,
             desc : desc
             }
         })
@@ -378,14 +382,16 @@ router.put( '/UpdateItem' ,upload.single('ItemImage') , (req,res)=> {
     }else{
         Item.updateOne({_id : id},
             {$set: { 
-                itemtype : type,
-                itemstate : newstate ,
-                updatedate: Date.now() ,
-                title:title,
-                category: category,
+                itemtype    : type,
+                itemstate   : newstate ,
+                updatedate  : Date.now() ,
+                title       : title,
+                category    : category,
                 subcategory : subcategory,
-                location : location,
-                desc : desc
+                location    : location,
+                color       : color,
+                shape       : shape,
+                desc        : desc
                 }
             })
             .then(item =>{
